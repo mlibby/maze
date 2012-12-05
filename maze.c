@@ -36,7 +36,7 @@ char *classify(int n)
     return c;
 }
 
-int **build_maze(int width, int height)
+int **initialize_maze(int width, int height)
 {
     int **maze;
     int x, y;
@@ -48,21 +48,38 @@ int **build_maze(int width, int height)
 
     for(y = 0; y < height; y++) {
 	for(x = 0; x < width; x++) {
-	    maze[x][y] = (x * y) % 16;
+	    maze[x][y] = 0;
 
 	    if(x == 0) {
 		maze[x][y] = maze[x][y] | LEFT;
 	    }
+
 	    if(x == width - 1) {
 		maze[x][y] = maze[x][y] | RIGHT;
 	    }
+
 	    if(y == 0) {
 		maze[x][y] = maze[x][y] | TOP;
 	    }
+
 	    if(y == height - 1) {
 		maze[x][y] = maze[x][y] | BOTTOM;
 	    }
+	}
+    }
 
+    return maze;
+}
+
+int **build_maze(int width, int height)
+{
+    int **maze;
+    int x, y;
+
+    maze = initialize_maze(width, height);
+
+    for(y = 0; y < height; y++) {
+	for(x = 0; x < width; x++) {
 	}
     }
 
@@ -96,7 +113,7 @@ int main(int argc, char *argv[])
 	fprintf(f, "</div>\n");
     }
 
-    fprintf(f, "</div></body></html>\n");
+    fprintf(f, "<div style='clear:both'></div></div></body></html>\n");
     fclose(f);
 
     return 0;
