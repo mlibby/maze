@@ -1,0 +1,33 @@
+.table {
+    margin:0px;
+    padding:0px;
+}
+
+.row {
+    display:inline;
+    clear: both;
+    float: left;
+}
+
+.cell {
+    float: left;
+    width: 20px;
+    height: 20px;
+    border: 2px solid white;
+}
+
+.top {
+    border-top: 2px solid black;
+}
+
+.right {
+    border-right: 2px solid black;
+}
+
+.bottom {
+    border-bottom: 2px solid black;
+}
+
+.left {
+    border-left: 2px solid black;
+}
