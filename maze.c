@@ -12,6 +12,12 @@ enum {
     LEFT = 8
 };
 
+typedef struct _maze {
+    int width;
+    int height;
+    int **cells;
+} maze;
+
 typedef struct _node {
     int x;
     int y;
@@ -42,23 +48,28 @@ char *classify(int n)
     return c;
 }
 
-int **initialize_maze(int width, int height)
+maze *new_maze(int width, int height)
 {
-    int **maze;
+    maze *m;
     int x, y;
 
-    maze = malloc(width * sizeof(int*));
-    for(x = 0; x < width; x++) {
-    	maze[x] = malloc(height * sizeof(int));
+    m = malloc(sizeof(maze));
+
+    m->width = width;
+    m->height = height;
+
+    m->cells = malloc(m->width * sizeof(int*));
+    for(x = 0; x < m->width; x++) {
+    	m->cells[x] = malloc(m->height * sizeof(int));
     }
 
-    for(y = 0; y < height; y++) {
-	for(x = 0; x < width; x++) {
-	    maze[x][y] = 0 | LEFT | RIGHT | TOP | BOTTOM;
+    for(y = 0; y < m->height; y++) {
+	for(x = 0; x < m->width; x++) {
+	    m->cells[x][y] = 0 | LEFT | RIGHT | TOP | BOTTOM;
 	}
     }
 
-    return maze;
+    return m;
 }
 
 node *new_node(int x, int y, node *prev)
@@ -71,41 +82,56 @@ node *new_node(int x, int y, node *prev)
     return n;
 }
 
-node *next_node(int **maze, int x, int y)
+node *next_node(maze *m, int x, int y)
 {
-    return NULL;
+    node *n = NULL;
+    
+    printf("next node from %d, %d = %d\n", x, y, m->cells[x][y]);
+    
+    if(x < m->width - 1) {
+	printf("checking right (%d & %d = %d)\n", m->cells[x][y], RIGHT, m->cells[x][y] & RIGHT);
+	if((m->cells[x][y] & RIGHT) != 0) {
+	    printf("tunneling right\n");
+	    n = new_node(x + 1, y, NULL);
+	    
+	    m->cells[x][y] = m->cells[x][y] & ~RIGHT;
+	    m->cells[n->x][n->y] = m->cells[n->x][n->y] & ~LEFT;
+	    
+	    printf("new node for %d, %d\n", n->x, n->y);
+	}
+    }
+    
+    return n;
 }
 
-int **build_maze(int width, int height)
+maze *build_maze(int width, int height)
 {
-    int **maze;
+    maze *m;
     int x = 0;
     int y = 0;
     node *tail;
     node *n;
 
-    maze = initialize_maze(width, height);
+    m = new_maze(width, height);
     tail = new_node(0, 0, NULL);
 
     while(tail != NULL) {
-	if(n = next_node(maze, tail->x, tail->y))
+	if((n = next_node(m, tail->x, tail->y)) == NULL)
 	{
+	    tail = tail->prev;
+	} else {
 	    n->prev = tail;
 	    tail = n;
 	}
-	else
-	{
-	    tail = tail->prev;
-	}
     }
 
-    return maze;
+    return m;
 }
 
 int main(int argc, char *argv[])
 {
     FILE *f;
-    int **maze;
+    maze *m;
     int height,width,x,y;
     char *class;
 
@@ -113,16 +139,16 @@ int main(int argc, char *argv[])
     width = WIDTH;
 
     printf("building maze\n");
-    maze = build_maze(width, height);
+    m = build_maze(width, height);
 
     printf("saving maze\n");
     f = fopen("maze.html", "w");
     fprintf(f, "<html><head><title>maze</title><link rel=\"stylesheet\" href=\"css.css\" /></head><body><div class='table'>\n");
 
-    for(y = 0; y < height; y++) {
+    for(y = 0; y < m->height; y++) {
 	fprintf(f, "<div class='row'>");
-	for(x = 0; x < width; x++) {
-	    class = classify(maze[x][y]);
+	for(x = 0; x < m->width; x++) {
+	    class = classify(m->cells[x][y]);
 	    fprintf(f, "<div class='cell %s\'></div>", class);
 	    free(class);
 	}
