@@ -12,6 +12,12 @@ enum {
     LEFT = 8
 };
 
+typedef struct _node {
+    int x;
+    int y;
+    struct _node *prev;
+} node;
+
 char *classify(int n)
 {
     char *c;
@@ -48,38 +54,48 @@ int **initialize_maze(int width, int height)
 
     for(y = 0; y < height; y++) {
 	for(x = 0; x < width; x++) {
-	    maze[x][y] = 0;
-
-	    if(x == 0) {
-		maze[x][y] = maze[x][y] | LEFT;
-	    }
-
-	    if(x == width - 1) {
-		maze[x][y] = maze[x][y] | RIGHT;
-	    }
-
-	    if(y == 0) {
-		maze[x][y] = maze[x][y] | TOP;
-	    }
-
-	    if(y == height - 1) {
-		maze[x][y] = maze[x][y] | BOTTOM;
-	    }
+	    maze[x][y] = 0 | LEFT | RIGHT | TOP | BOTTOM;
 	}
     }
 
     return maze;
 }
 
+node *new_node(int x, int y, node *prev)
+{
+    node *n;
+    n = malloc(sizeof(node));
+    n->x = x;
+    n->y = y;
+    n->prev = prev;
+    return n;
+}
+
+node *next_node(int **maze, int x, int y)
+{
+    return NULL;
+}
+
 int **build_maze(int width, int height)
 {
     int **maze;
-    int x, y;
+    int x = 0;
+    int y = 0;
+    node *tail;
+    node *n;
 
     maze = initialize_maze(width, height);
+    tail = new_node(0, 0, NULL);
 
-    for(y = 0; y < height; y++) {
-	for(x = 0; x < width; x++) {
+    while(tail != NULL) {
+	if(n = next_node(maze, tail->x, tail->y))
+	{
+	    n->prev = tail;
+	    tail = n;
+	}
+	else
+	{
+	    tail = tail->prev;
 	}
     }
 
