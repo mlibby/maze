@@ -85,8 +85,35 @@ node *new_node(int x, int y, node *prev)
 node *next_node(maze *m, int x, int y)
 {
     node *n = NULL;
-    
+    int possibles[4] = { 0, 0, 0, 0 };
+    int count = 0;
+    int current_cell = 0;
+
     printf("next node from %d, %d = %d\n", x, y, m->cells[x][y]);
+
+    current_cell = m->cells[x][y];
+
+    if((x > 0) && (current_cell & LEFT) != 0) {
+	possibles[count] = LEFT;
+	count++;
+    }
+
+    if((y > 0) && (current_cell & TOP) != 0) {
+	possibles[count] = TOP;
+	count++;
+    }
+
+    if((x < m->width - 1) && (current_cell & RIGHT) != 0) {
+	possibles[count] = RIGHTT;
+	count++;
+    }
+
+    if((y > m->height - 1) && (current_cell & BOTTOM) != 0) {
+	possibles[count] = BOTTOM;
+	count++;
+    }
+
+    
     
     if(x < m->width - 1) {
 	printf("checking right (%d & %d = %d)\n", m->cells[x][y], RIGHT, m->cells[x][y] & RIGHT);
