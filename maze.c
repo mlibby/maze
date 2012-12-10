@@ -2,14 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define HEIGHT 8
-#define WIDTH 48
+#define HEIGHT 36
+#define WIDTH 28
 
 enum {
     TOP = 1,
     RIGHT = 2,
     BOTTOM = 4,
-    LEFT = 8
+    LEFT = 8,
+    VISITED = 16
 };
 
 typedef struct _maze {
@@ -23,6 +24,10 @@ typedef struct _node {
     int y;
     struct _node *prev;
 } node;
+
+int rnd(int min, int max) {
+    return ((double)rand() / ((double)RAND_MAX + 1.0)) * (max - min + 1) + min;
+}
 
 char *classify(int n)
 {
@@ -82,40 +87,78 @@ node *new_node(int x, int y, node *prev)
     return n;
 }
 
-node *next_node(maze *m, int x, int y)
+node *next_node(maze *m, int cx, int cy)
 {
     node *n = NULL;
     int possibles[4] = { 0, 0, 0, 0 };
     int count = 0;
     int current_cell = 0;
+    int pc = 0;
+    int nx, ny;
+    int back;
 
-    printf("next node from %d, %d = %d\n", x, y, m->cells[x][y]);
+    printf("next node from %d, %d = %d\n", cx, cy, m->cells[cx][cy]);
 
-    current_cell = m->cells[x][y];
-
-    if((x > 0) && (current_cell & LEFT) != 0) {
+    if((cx > 0) && (m->cells[cx - 1][cy] & VISITED) == 0) {
 	possibles[count] = LEFT;
 	count++;
     }
 
-    if((y > 0) && (current_cell & TOP) != 0) {
+    if((cy > 0) && (m->cells[cx][cy - 1] & VISITED) == 0) {
 	possibles[count] = TOP;
 	count++;
     }
 
-    if((x < m->width - 1) && (current_cell & RIGHT) != 0) {
-	possibles[count] = RIGHTT;
+    if((cx < m->width - 1) && (m->cells[cx + 1][cy] & VISITED) == 0) {
+	possibles[count] = RIGHT;
 	count++;
     }
 
-    if((y > m->height - 1) && (current_cell & BOTTOM) != 0) {
+    if((cy < m->height - 1) && (m->cells[cx][cy + 1] & VISITED) == 0) {
 	possibles[count] = BOTTOM;
 	count++;
     }
 
+    printf("Possibles %d, %d, %d, %d\n", possibles[0], possibles[1], possibles[2], possibles[3]);
+
+    if(count > 0)    {
+	pc = rnd(0, count - 1);
+	printf("tunneling %d\n", possibles[pc]);
+
+	switch(possibles[pc]){
+	case LEFT:
+	    nx = cx - 1;
+	    ny = cy;
+	    back = RIGHT;
+	    break;
+	case RIGHT:
+	    nx = cx + 1;
+	    ny = cy;
+	    back = LEFT;
+	    break;
+	case BOTTOM:
+	    nx = cx;
+	    ny = cy + 1;
+	    back = TOP;
+	    break;
+	case TOP:
+	    nx = cx;
+	    ny = cy - 1;
+	    back = BOTTOM;
+	    break;
+	}
+
+	n = new_node(nx, ny, NULL);
+	m->cells[cx][cy] = m->cells[cx][cy] & ~possibles[pc];
+	m->cells[n->x][n->y] = m->cells[n->x][n->y] & ~back;
+	m->cells[n->x][n->y] = m->cells[n->x][n->y] | VISITED;
+	
+	printf("new node for %d, %d\n", n->x, n->y);
+    } else {
+	return NULL;
+    }
     
-    
-    if(x < m->width - 1) {
+/*     if(x < m->width - 1) {
 	printf("checking right (%d & %d = %d)\n", m->cells[x][y], RIGHT, m->cells[x][y] & RIGHT);
 	if((m->cells[x][y] & RIGHT) != 0) {
 	    printf("tunneling right\n");
@@ -127,7 +170,8 @@ node *next_node(maze *m, int x, int y)
 	    printf("new node for %d, %d\n", n->x, n->y);
 	}
     }
-    
+*/
+ 
     return n;
 }
 
@@ -141,6 +185,7 @@ maze *build_maze(int width, int height)
 
     m = new_maze(width, height);
     tail = new_node(0, 0, NULL);
+    m->cells[0][0] = m->cells[0][0] | VISITED;
 
     while(tail != NULL) {
 	if((n = next_node(m, tail->x, tail->y)) == NULL)
@@ -161,6 +206,8 @@ int main(int argc, char *argv[])
     maze *m;
     int height,width,x,y;
     char *class;
+
+    srand(time(0));
 
     height = HEIGHT;
     width = WIDTH;
